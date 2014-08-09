@@ -36,14 +36,16 @@ Now, if you've installed the `deps.bash` script to a directory in your `$PATH`, 
 
 ## To install
 
-1. mkdir ~/.bin   (We're adding a new folder to $PATH; if you already have a
-2. cd ~/.bin       suitable folder, use that one.)
+```
+1. mkdir ~/.bin   (We're making a new folder to add to $PATH; if you already
+2. cd ~/.bin       have a suitable folder, use that one.)
 3. wget https://raw.githubusercontent.com/xinxinw1/deps/master/deps.bash
-4. chmod a+x deps.bash
+4. chmod a+x deps.bash  (Add execute permissions)
 5. nano ~/.bashrc
    - add
 export PATH=$PATH:/home/<your username>/.bin
-6. close and reopen your terminal
+6. source ~/.bashrc  (Reload .bashrc; you can also reopen the terminal)
 7. git config --global alias.deps '!deps.bash'
 8. cd <your project directory>
 9. git deps   (To see if it works)
+```
