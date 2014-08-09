@@ -21,8 +21,10 @@ function deps {
     fi
     local file=${obj##*:}
     local addnm=$todir/$file
-    local loc=../$d/$addnm
+    local dest=../$d/$todir
+    local loc=$dest/$file
     cd $cdir
+    if [ ! -d "$dest" ]; then mkdir $dest; fi
     git show $obj > $loc
     s="$s $addnm"
     cd ../
@@ -31,3 +33,5 @@ function deps {
   git add $s
   git commit
 }
+
+deps
