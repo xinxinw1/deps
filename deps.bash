@@ -23,15 +23,23 @@ function deps {
     local addnm=$todir/$file
     local dest=../$d/$todir
     local loc=$dest/$file
-    cd $cdir
-    if [ ! -d "$dest" ]; then mkdir $dest; fi
-    git show $obj > $loc
-    s="$s $addnm"
-    cd ../
+    if [ -d "$cdir" ]; then
+      cd $cdir
+      if git show $obj 1> /dev/null; then
+        if [ ! -d "$dest" ]; then mkdir $dest; fi
+        git show $obj > $loc
+        s="$s $addnm"
+      fi
+      cd ../
+    else
+      echo "Directory $cdir doesn't exist"
+    fi
   done < <(cat $d/deps)
   cd $d
-  git add $s
-  git commit
+  if [ -n "$s" ]; then
+    git add $s
+    git commit
+  fi
 }
 
 deps
