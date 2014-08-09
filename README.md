@@ -33,3 +33,17 @@ prec-math master:prec-math.js lib
 The lines starting with `# text text` are comments. Each line with two items separated by a space means "in the original repo, copy <first item> to directory <second item>". Each line with three items means "in repo <first item>, copy <second item> to directory <third item> in the original repo".
 
 Now, if you've installed the `deps.bash` script to a directory in your `$PATH`, and run `git config --global alias.deps '!deps.bash'`, you can now run `git deps` and it will automatically copy the files from the correct branches of tools, prec-math, and cmpl-math to the lib folder of cmpl-math.
+
+## To install
+
+1. mkdir ~/.bin   (We're adding a new folder to $PATH; if you already have a
+2. cd ~/.bin       suitable folder, use that one.)
+3. wget https://raw.githubusercontent.com/xinxinw1/deps/master/deps.bash
+4. chmod a+x deps.bash
+5. nano ~/.bashrc
+   - add
+export PATH=$PATH:/home/<your username>/.bin
+6. close and reopen your terminal
+7. git config --global alias.deps '!deps.bash'
+8. cd <your project directory>
+9. git deps   (To see if it works)
