@@ -49,3 +49,11 @@ export PATH=$PATH:/home/<your username>/.bin
 8. cd <your project directory>
 9. git deps   (To see if it works)
 ```
+
+## Arguments
+
+```
+-n, --no-commit     don't add or commit after copying deps
+-c, --use-latest    use file in HEAD instead of the specified branch, if possible
+-d, --output        set output directory
+```
