@@ -25,12 +25,12 @@ To do that, you create a file named `deps` in the gh-pages branch of `cmpl-math`
 ```
 # This file is a dependency definition
 # See https://github.com/xinxinw1/deps for more details
-master:cmpl-math.js lib
-tools master:tools.js lib
-prec-math master:prec-math.js lib
+           master:cmpl-math.js  lib
+tools      master:tools.js      lib
+prec-math  master:prec-math.js  lib
 ```
 
-The lines starting with `# text text` are comments. Each line with two items separated by a space means "in the original repo, copy <first item> to directory <second item>". Each line with three items means "in repo <first item>, copy <second item> to directory <third item> in the original repo".
+The lines starting with `# text text` are comments. Each line with two items separated by spaces means "in the original repo, copy <first item> to directory <second item>". Each line with three items means "in repo <first item>, copy <second item> to directory <third item> in the original repo".
 
 Now, if you've installed the `deps.bash` script to a directory in your `$PATH`, and run `git config --global alias.deps '!deps.bash'`, you can now run `git deps` and it will automatically copy the files from the correct branches of tools, prec-math, and cmpl-math to the lib folder of cmpl-math.
 
@@ -53,7 +53,7 @@ export PATH=$PATH:/home/<your username>/.bin
 ## Arguments
 
 ```
--n, --no-commit     don't add or commit after copying deps
--c, --use-latest    use file in HEAD instead of the specified branch, if possible
--d, --output        set output directory
+-n, --latest     use file in HEAD instead of the specified branch, if possible
+-c, --commit     add and commit after copying deps
+-d, --output     set output directory
 ```

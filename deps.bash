@@ -4,28 +4,26 @@ function deps {
   local s=
   local d="${PWD##*/}"   # original directory
   
-  local nocom=
+  local com=
   local lat=
   local out="../$d"
-  local sout=
   while [[ $# > 0 ]]; do
     local key="$1"
     shift
     
     case $key in
       -nc)
-        nocom="true"
+        com="true"
         lat="true"
       ;;
-      -n|--no-commit)
-        nocom="true"
-      ;;
-      -c|--use-latest)
+      -n|--latest)
         lat="true"
+      ;;
+      -c|--commit)
+        com="true"
       ;;
       -d|--output)
         out="$1"
-        sout="true"
         shift
       ;;
       *)
@@ -79,7 +77,7 @@ function deps {
     fi
   done < <(cat "$d/deps" 2>/dev/null)
   cd "$d"
-  if [ -n "$s" ] && [ "$nocom" != "true" ] && [ "$sout" != "true" ]; then
+  if [ "$com" == "true" ] && [ -n "$s" ]; then
     # no quotes around $s so that it expands
     git add $s
     git commit
