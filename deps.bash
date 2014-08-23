@@ -50,21 +50,26 @@ function deps {
       todir="${arr[2]}"
     fi
     local file="${obj##*:}"
+    local bran="${obj%%:*}"
     local addnm="$todir/$file"
     local dest="$out/$todir"
     local loc="$dest/$file"
     if [ -d "$cdir" ]; then
       cd "$cdir"
       if [ "$lat" != "true" ] || [ ! -f $file ]; then
-        if git show "$obj" 1> /dev/null; then
+        if git show "$obj" 1>/dev/null 2>/dev/null; then
           if [ ! -d "$dest" ]; then mkdir -p "$dest"; fi
           git show "$obj" > $loc
+          local modestr="$(git ls-tree "$bran" -- "$file")"
+          local modearr=($modestr)
+          local mode="${modearr[0]:3:3}"
+          chmod "$mode" "$loc"
           s="$s $addnm"
         fi
       else
         if [ -f $file ]; then
           if [ ! -d "$dest" ]; then mkdir -p "$dest"; fi
-          cp "$file" "$dest"
+          cp -p "$file" "$dest"
           s="$s $addnm"
         fi
       fi
