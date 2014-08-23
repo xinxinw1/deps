@@ -53,7 +53,7 @@ export PATH=$PATH:/home/<your username>/.bin
 ## Arguments
 
 ```
--n, --latest     use file in HEAD instead of the specified branch, if possible
+-l, --latest     use file in HEAD instead of the specified branch, if possible
 -c, --commit     add and commit after copying deps
--d, --output     set output directory
+-o, --output     set output directory
 ```
