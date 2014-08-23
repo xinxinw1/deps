@@ -67,7 +67,7 @@ function deps {
       else
         if [ -f $file ]; then
           if [ ! -d "$dest" ]; then mkdir -p "$dest"; fi
-          cp -p "$file" "$dest"
+          cp --preserve=mode "$file" "$dest"
           s="$s $addnm"
         fi
       fi
