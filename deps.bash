@@ -7,6 +7,8 @@ function deps {
   local com=
   local lat=
   local out="../$d"
+  local depsfile="$d/deps"
+  local debug=
   while [[ $# > 0 ]]; do
     local key="$1"
     shift
@@ -15,6 +17,19 @@ function deps {
       -lc|-cl)
         com="true"
         lat="true"
+      ;;
+      -ld|-dl)
+        lat="true"
+        debug="true"
+      ;;
+      -cd|-dc)
+        com="true"
+        debug="true"
+      ;;
+      -lcd|-ldc|-dlc|-dcl|-cld|-cdl)
+        com="true"
+        lat="true"
+        debug="true"
       ;;
       -l|--latest)
         lat="true"
@@ -29,6 +44,21 @@ function deps {
         out="$1"
         shift
       ;;
+      -f|--depsfile)
+        if [ -z "$1" ]; then
+          echo "Warning: empty deps param; treating as empty deps file" 1>&2
+          depsfile="/dev/null"
+        else
+          if [ ! -f "$1" ]; then
+            echo "Warning: no such file $1"
+          fi
+          depsfile="$1"
+        fi
+        shift
+      ;;
+      -d|--debug)
+        debug="true"
+      ;;
       -*)
         echo "Warning: unknown option $key" 1>&2
       ;;
@@ -37,6 +67,7 @@ function deps {
       ;;
     esac
   done
+  local deps="$(cat "$depsfile" 2>/dev/null)"
   
   cd ../
   while read line; do
@@ -44,6 +75,7 @@ function deps {
     local arr=($line)
     local n="${#arr[@]}"
     [ "$n" == "0" ] && continue
+    #[ "$debug" == "true" ] && echo "$line"
     local cdir; local obj; local todir;
     if [ "$n" == "2" ]; then
       cdir="$d"
@@ -58,11 +90,11 @@ function deps {
     [ "$lat" == "true" ] && obj="$file"
     local bran="${obj%%:*}"
     [ "$obj" == "$file" ] && bran=""
-    #echo $obj
     local addnm="$todir/$file"
     local dest="$out/$todir"
     [ -z "$out" ] && dest="/dev/null"
     local loc="$dest/$file"
+    [ "$debug" == "true" ] && echo "$cdir $obj -> $dest"
     if [ -d "$cdir" ]; then
       cd "$cdir"
       
@@ -107,7 +139,7 @@ function deps {
     else
       echo "Warning: directory $cdir doesn't exist" 1>&2
     fi
-  done < <(cat "$d/deps" 2>/dev/null)
+  done < <(echo "$deps")
   cd "$d"
   if [ "$com" == "true" ]; then
     if [ -n "$s" ]; then
