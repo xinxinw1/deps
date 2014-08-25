@@ -43,6 +43,7 @@ function deps {
     [ "${line:0:1}" == "#" ] && continue
     local arr=($line)
     local n="${#arr[@]}"
+    [ "$n" == "0" ] && continue
     local cdir; local obj; local todir;
     if [ "$n" == "2" ]; then
       cdir="$d"
