@@ -6,8 +6,9 @@ function deps {
   
   local com=
   local lat=
-  local out="../$d"
-  local depsfile="$d/deps"
+  local out="$(realpath -m .)"
+  # http://stackoverflow.com/questions/284662/how-do-you-normalize-a-file-path-in-bash
+  local depsfile="$(realpath -m deps)"
   local debug=
   while [[ $# > 0 ]]; do
     local key="$1"
@@ -40,8 +41,10 @@ function deps {
       -o|--output)
         if [ -z "$1" ]; then
           echo "Warning: empty output param; sending to /dev/null" 1>&2
+          out="/dev/null"
+        else
+          out="$(realpath -m "$1")"
         fi
-        out="$1"
         shift
       ;;
       -f|--depsfile)
@@ -49,10 +52,10 @@ function deps {
           echo "Warning: empty deps param; treating as empty deps file" 1>&2
           depsfile="/dev/null"
         else
-          if [ ! -f "$1" ]; then
-            echo "Warning: no such file $1"
+          depsfile="$(realpath -m "$1")"
+          if [ ! -f "$depsfile" ]; then
+            echo "Warning: no such file $depsfile"
           fi
-          depsfile="$1"
         fi
         shift
       ;;
@@ -67,7 +70,11 @@ function deps {
       ;;
     esac
   done
-  local deps="$(cat "$depsfile" 2>/dev/null)"
+  if [ "$debug" == "true" ]; then
+    echo "Depsfile is $depsfile"
+    echo "Output is $out"
+  fi
+  
   
   cd ../
   while read line; do
@@ -91,16 +98,16 @@ function deps {
     local bran="${obj%%:*}"
     [ "$obj" == "$file" ] && bran=""
     local addnm="$todir/$file"
-    local dest="$out/$todir"
-    [ -z "$out" ] && dest="/dev/null"
+    local dest="$(realpath -m "$out/$todir")"
+    [ "$out" == "/dev/null" ] && dest="/dev/null"
     local loc="$dest/$file"
-    [ "$debug" == "true" ] && echo "$cdir $obj -> $dest"
+    [ "$debug" == "true" ] && echo "$cdir $obj $todir"
     if [ -d "$cdir" ]; then
       cd "$cdir"
       
       if [ "$bran" == "" ]; then
         if [ -f $file ]; then
-          if [ ! -z "$out" ]; then
+          if [ "$out" != "/dev/null" ]; then
             [ ! -d "$dest" ] && mkdir -p "$dest"
             cp --preserve=mode "$file" "$dest"
           fi
@@ -118,7 +125,7 @@ function deps {
         
         if [ "$gitdir" == "true" ]; then
           if [ "$hasobj" == "true" ]; then
-            if [ ! -z "$out" ]; then
+            if [ "$out" != "/dev/null" ]; then
               [ ! -d "$dest" ] && mkdir -p "$dest"
               git show "$obj" > $loc
               local modestr="$(git ls-tree "$bran" -- "$file")"
@@ -139,7 +146,7 @@ function deps {
     else
       echo "Warning: directory $cdir doesn't exist" 1>&2
     fi
-  done < <(echo "$deps")
+  done < <(cat "$depsfile" 2>/dev/null)
   cd "$d"
   if [ "$com" == "true" ]; then
     if [ -n "$s" ]; then
