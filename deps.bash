@@ -9,6 +9,7 @@ function deps {
   local out="$(realpath -m .)"
   # http://stackoverflow.com/questions/284662/how-do-you-normalize-a-file-path-in-bash
   local depsfile="$(realpath -m deps)"
+  local nomet=
   local debug=
   while [[ $# > 0 ]]; do
     local key="$1"
@@ -59,6 +60,9 @@ function deps {
         fi
         shift
       ;;
+      -n|--no-meta)
+        nomet="true"
+      ;;
       -d|--debug)
         debug="true"
       ;;
@@ -73,6 +77,14 @@ function deps {
   if [ "$debug" == "true" ]; then
     echo "Depsfile is $depsfile"
     echo "Output is $out"
+  fi
+  
+  [ -f "$out/depsinfo" ] && rm "$out/depsinfo"
+  
+  if [ -z "$nomet" ]; then
+    echo "$(date)" >> "$out/depsinfo"
+    echo "Depsfile is $depsfile" >> "$out/depsinfo"
+    echo "Output is $out" >> "$out/depsinfo"
   fi
   
   
@@ -102,6 +114,7 @@ function deps {
     [ "$out" == "/dev/null" ] && dest="/dev/null"
     local loc="$dest/$file"
     [ "$debug" == "true" ] && echo "$cdir $obj $todir"
+    [ -z "$nomet" ] && echo "$cdir $obj $todir" >> "$out/depsinfo"
     if [ -d "$cdir" ]; then
       cd "$cdir"
       
@@ -156,6 +169,14 @@ function deps {
     else
       echo "Warning: nothing to commit" 1>&2
     fi
+  fi
+  
+  if [ -z "$nomet" ]; then
+    local hea="$(head -n3 "$out/depsinfo")"
+    local tai="$(tail -n+4 "$out/depsinfo" | column -t)"
+    
+    echo "$hea" > "$out/depsinfo"
+    echo "$tai" >> "$out/depsinfo"
   fi
 }
 
