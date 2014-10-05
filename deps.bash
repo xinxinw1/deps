@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function deps {
-  local s=
+  local s="depsinfo"
   local d="${PWD##*/}"   # original directory
   
   local com=
@@ -165,7 +165,7 @@ function deps {
     if [ -n "$s" ]; then
       # no quotes around $s so that it expands
       git add $s
-      git commit
+      git commit -m "update deps"
     else
       echo "Warning: nothing to commit" 1>&2
     fi
