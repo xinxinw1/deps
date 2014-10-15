@@ -87,8 +87,8 @@ function deps {
     echo "Output is $out" >> "$out/depsinfo"
   fi
   
-  
   cd ../
+  
   while read line; do
     [ "${line:0:1}" == "#" ] && continue
     local arr=($line)
@@ -109,12 +109,13 @@ function deps {
     [ "$lat" == "true" ] && obj="$file"
     local bran="${obj%%:*}"
     [ "$obj" == "$file" ] && bran=""
-    local addnm="$todir/$file"
+    local filenm="${file##*/}"
+    local addnm="$todir/$filenm"
     local dest="$(realpath -m "$out/$todir")"
     [ "$out" == "/dev/null" ] && dest="/dev/null"
-    local loc="$dest/$file"
-    [ "$debug" == "true" ] && echo "$cdir $obj $todir"
-    [ -z "$nomet" ] && echo "$cdir $obj $todir" >> "$out/depsinfo"
+    local loc="$dest/$filenm"
+    [ "$debug" == "true" ] && echo "$cdir $obj $todir --> $loc"
+    [ -z "$nomet" ] && echo "$cdir $obj $todir --> $loc" >> "$out/depsinfo"
     if [ -d "$cdir" ]; then
       cd "$cdir"
       
@@ -160,7 +161,17 @@ function deps {
       echo "Warning: directory $cdir doesn't exist" 1>&2
     fi
   done < <(cat "$depsfile" 2>/dev/null)
+  
   cd "$d"
+  
+  if [ -z "$nomet" ]; then
+    local hea="$(head -n3 "$out/depsinfo")"
+    local tai="$(tail -n+4 "$out/depsinfo" | column -t)"
+    
+    echo "$hea" > "$out/depsinfo"
+    echo "$tai" >> "$out/depsinfo"
+  fi
+  
   if [ "$com" == "true" ]; then
     if [ -n "$s" ]; then
       # no quotes around $s so that it expands
@@ -169,14 +180,6 @@ function deps {
     else
       echo "Warning: nothing to commit" 1>&2
     fi
-  fi
-  
-  if [ -z "$nomet" ]; then
-    local hea="$(head -n3 "$out/depsinfo")"
-    local tai="$(tail -n+4 "$out/depsinfo" | column -t)"
-    
-    echo "$hea" > "$out/depsinfo"
-    echo "$tai" >> "$out/depsinfo"
   fi
 }
 
