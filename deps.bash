@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function deps {
-  local s="depsinfo"
+  local s=()
   local d="${PWD##*/}"   # original directory
   
   local com=
@@ -77,14 +77,31 @@ function deps {
   if [ "$debug" == "true" ]; then
     echo "Depsfile is $depsfile"
     echo "Output is $out"
+    echo ""
   fi
   
-  [ -f "$out/depsinfo" ] && rm "$out/depsinfo"
+  if [ -f "$out/depsinfo.new" ]; then
+    while true; do
+      read -p "Fille $out/depsinfo.new exists? Delete and replace it? [Yn] " yn
+      case $yn in
+        [Yy]* | "")
+          rm "$out/depsinfo.new"
+          break
+        ;;
+        [Nn]*)
+          exit
+        ;;
+        *)
+          echo "Unknown answer."
+        ;;
+      esac
+    done
+  fi
   
   if [ -z "$nomet" ]; then
-    echo "$(date)" >> "$out/depsinfo"
-    echo "Depsfile is $depsfile" >> "$out/depsinfo"
-    echo "Output is $out" >> "$out/depsinfo"
+    echo "$(date)" >> "$out/depsinfo.new"
+    echo "Depsfile is $depsfile" >> "$out/depsinfo.new"
+    echo "Output is $out" >> "$out/depsinfo.new"
   fi
   
   cd ../
@@ -114,8 +131,8 @@ function deps {
     local dest="$(realpath -m "$out/$todir")"
     [ "$out" == "/dev/null" ] && dest="/dev/null"
     local loc="$dest/$filenm"
-    [ "$debug" == "true" ] && echo "$cdir $obj $todir --> $loc"
-    [ -z "$nomet" ] && echo "$cdir $obj $todir --> $loc" >> "$out/depsinfo"
+    [ "$debug" == "true" ] && echo "$cdir $obj $todir --> $addnm"
+    [ -z "$nomet" ] && echo "$cdir $obj $todir --> $addnm" >> "$out/depsinfo.new"
     if [ -d "$cdir" ]; then
       cd "$cdir"
       
@@ -125,7 +142,7 @@ function deps {
             [ ! -d "$dest" ] && mkdir -p "$dest"
             cp --preserve=mode "$file" "$dest"
           fi
-          s="$s $addnm"
+          s+=("$addnm")
         else
           echo "Warning: $obj not found in $cdir" 1>&2
         fi
@@ -147,7 +164,7 @@ function deps {
               local mode="${modearr[0]:3:3}"
               chmod "$mode" "$loc"
             fi
-            s="$s $addnm"
+            s+=("$addnm")
           else
             echo "Warning: $obj not found in $cdir" 1>&2
           fi
@@ -164,21 +181,52 @@ function deps {
   
   cd "$d"
   
-  if [ -z "$nomet" ]; then
-    local hea="$(head -n3 "$out/depsinfo")"
-    local tai="$(tail -n+4 "$out/depsinfo" | column -t)"
+  if git rev-parse --git-dir >/dev/null 2>&1; then
+    if [ "${#s[@]}" != "0" ]; then
+      s=($(awk '{ print $2 }' <(git status --porcelain "${s[@]}")))
+    fi
+  fi
     
-    echo "$hea" > "$out/depsinfo"
-    echo "$tai" >> "$out/depsinfo"
+  if [ "$debug" == "true" ]; then
+    echo ""
+    if [ "${#s[@]}" != "0" ]; then
+      echo "Updated Files:"
+      printf -- '%s\n' "${s[@]}"
+    else
+      echo "No files updated"
+    fi
+  fi
+  
+  if [ -z "$nomet" ]; then
+    local hea="$(head -n3 "$out/depsinfo.new")"
+    local tai="$(tail -n+4 "$out/depsinfo.new" | column -t)"
+    
+    echo "$hea" > "$out/depsinfo.new"
+    echo "" >> "$out/depsinfo.new"
+    echo "$tai" >> "$out/depsinfo.new"
+    echo "" >> "$out/depsinfo.new"
+    
+    if [ "${#s[@]}" != "0" ]; then
+      echo "Updated Files:" >> "$out/depsinfo.new"
+      printf -- '%s\n' "${s[@]}" >> "$out/depsinfo.new"
+      mv "$out/depsinfo.new" "$out/depsinfo"
+    else
+      echo "No files updated" >> "$out/depsinfo.new"
+      rm "$out/depsinfo.new"
+    fi
   fi
   
   if [ "$com" == "true" ]; then
-    if [ -n "$s" ]; then
-      # no quotes around $s so that it expands
-      git add $s
-      git commit -m "update deps"
+    if git rev-parse --git-dir >/dev/null 2>&1; then
+      if [ "${#s[@]}" != "0" ]; then
+        # no quotes around $s so that it expands
+        git add depsinfo ${s[@]}
+        git commit -m "update deps"
+      else
+        echo "Warning: nothing to commit" 1>&2
+      fi
     else
-      echo "Warning: nothing to commit" 1>&2
+      echo "Warning: can't commit in a non-git dir"
     fi
   fi
 }
